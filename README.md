@@ -1,55 +1,18 @@
 # Final Assignment
 
-Your last assignment is different from your previous assignments. This time you should come up with a proposal on what you want to make. Go back and think about what we discussed in our first session => the reason you are taking this course and what you want to learn from it. Or think how can JavaScript can help your thesis project and try to help your thesis (make an artifact for your thesis / data visualization / documentation website / blog). Teamwork is allowed, in fact you are encouraged to team up (maximum 2 per group. And of course, expectation is higher when doing a team project). Make something nice that you will be proud of. Make something that you will put it on your portfolio, despite how minimal it would be.
+For the final, I worked on the front-end of a website for a startup in DUMBO called Carmera with a backend developer names James Yeh (https://github.com/jamesclyeh). 
+For background, Carmera is a company aiming to get the freshest street imagery and sensor data of New York using cameras and sensors that they place on top of commercial vehicles that often drive all over the city daily. Their data is as fresh as 7-30 days. They challenges us to create a prototype of a project that finds a good use for all of this raw information they have gathered. In the last few weeks of school, we have been building a website for "city decision makers" i.e. architects, urban planners, realtors, etc. This user base can use our web platform in the following ways:
 
-You can use any tool/library as long as you properly reference it. There are no instructions or rules on what you have to implement. That said, try to categorize your project in one of the three below categories and do something that at least loosely relates to some of the ideas provided. These are just ideas, not rules or requirements!
+* See the street imagery and sensor data of certain areas based on specific filters including: the radius from a certain address, neighborhood, or entire city, the time of day (Morning, Afternoon, Evening, Night), date taken (single day, last 90 days, 30 days, 7 days), image and/or video content included, and specific tags can be typed in such as: "firehydrants", "buildings", "people", "cars", etc. 
+* For people and cars, a heatmap shows up on the map to indicate the densest areas, for everything else, pins are dropped on the map. When pins are on the map, the user will be able to hover over any image of interest to a) get more info about the image such as it's ID number, the angle at which it was taken, and they exact date and time it was captured, and b) to move the map that appears to the left of the imagery to the correct corresponding pin, which turns orange on hover from it's original blue color.
+* Other than filtering these images, users are also able to press a button labeled "Select Images" which then allows them to select as many of the images pertinent to a city decision maker's personal projects, which are availble to them in a seperate navigation button on the left side of the screen. There are two navigation options: the initial option is where you filter and select a certain area to view the available data and imagery for it, and the second is where you save images to projects that you name and create (we have not built this section out yet). In this second tab, you also have the ability to download the imagery and metadata that you have saved in each project.
+* When you click on a specific image rather than just hovering on it, you are navigated to a new page with a larger version of the image, detailed information from the sensor data, the ability to take notes on that image, and the ability to annotate the image itself with a pen tool. Users will also be encouraged to help crowdsource tags by using the tag tool to tag pertinent objects, as it will be helpful to them when they are counting up the number of these objects in their area of interest, while simultaneously increasing the accuracy of the website. The website uses a neural network/computer vision (implemented by James Yeh) to recognize  certain objects. However, the neural network is not always accurate and makes mistakes. User feedback and tags will help fix these problems.
 
-#### :one:Backend Focused
-
-##### Some ideas
-
-* Maybe design a RESTful API, create a documentation on the endpoints and services of your application.
-* Interface with one or two APIs, do some data processing and analysis.
-* Bring in physical computing, use node to connect to an Arduino and process user/environment interactions. Use serialport.
-* Dive into databases, connect to postgres, mysql, mongodb, mariadb or … . Look into Mongoose or Sequelize and use them.
-
-#### :two:Frontend Focused
-
-##### Some ideas
-
-- Implement UI elements of your choice, show your JavaScript skills.
-- Make a responsive static web page. Make cool and neat interactions.
-- Use p5.js/paper.js/snap.svg . 
-- Make your own icons and animations.
-- Data visualization, use chart.js/THREE.js/WebGL
-
-#### :three:Full Stack
-
-##### Some ideas
-
-- Make something similar to the Todo list. Just give it an actual purpose and use.
-- Make a blog for your self and actually host. You will need this one for your thesis! (so make one now yourself).
-- Do some tempting with `.jade` or any other tempting engine of your choice with Expressjs.
-- Use web sockets (websocket/socket.io) to create realtime user interaction. Shared document?? shared painting ??
-- Make a game, multiplayer ??
+#### APIs used
+* The main API used was the Carmera API for the street imagery and sensory data. I can't link it here as they are still in stealth-ish mode.
+* Mapbox API
+* The Leaflet heatmap plugin
+* A simple drawing editor: https://github.com/ianli/raphael-sketchpad
 
 
-
-### Submission Detail
-
-Every person/team should send a proposal to me by Monday Dec. 5th. I will review your proposal and will give you a feedback in a day. I won't change you project, I might only add few things to it, simplify or give your hints on where to start with it.
-
-#### Hard Deadline
-
-December 20th.
-
-##### Submission Requirements
-
-After submitting your proposal, a repository will be created for every person/team. Your final code should be push to the repository before deadline. 
-
-You must write a README.md for your repository, explaining your idea, approach, tools/libraries and … .
-
-
-
-### Good luck :fire::fire::fire:
 
