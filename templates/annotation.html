@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Carmera</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <script src='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.lazyload.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/leaflet-heat.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/raphael-2.0.1.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/raphael.sketchpad.js') }}"></script>
+</head>
+
+<body>
+    <header>
+        <nav>
+        <a href="http://localhost:5000/">
+            <div class="logo"></div>
+            <div id="carmera">Carmera <span id="dataExplorer">Data Explorer <span id="beta">Beta</span></span>
+            </div>
+        </a>
+        </nav>
+    </header>
+
+    <div id="side-nav">
+        <div id="tag-button"><img src="{{ url_for('static', filename='css/img/tag.png') }}" width="60%" onclick="tagging();"></div>
+        <div id="mark-button"><img src="{{ url_for('static', filename='css/img/mark.png') }}" width="60%" onclick="drawing();"></div>
+    </div>
+
+    <div id="image-annotated">
+        <div id="tagging_area"></div>
+        <div id="drawing_pad"></div>
+        <img src="{{ url_for('pictures', filename='%s.jpg'%(image.image_id))}}" id="street_image" style="width:100%;" />
+    </div>
+
+    <div id="moreInfoWrapper">
+        <div id="results" style="text-align: center;">
+            <p>Image ID: {{image.image_id}}</p>
+        </div>
+        <div id="tags"><span>Tags +</span>
+            <div id="sug" style="display: none;">
+                <ul id="suggested_tags_list" class="tags">
+                    {% for tag in all_tags %}
+                    <li class="suggested_tag" id="{{ loop.index0 }}">{{'%s' % tag.tag}}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div id="sensor-data"><span>Sensor Data +</span>
+            <div id="sensor-data-item" style="display: none;">
+                <div style="width: 85%;">{{image.json}}</div>
+            </div>
+        </div>
+        <p style="padding-left: 20px; text-align: center; font-weight: bold;">Notes:</p>
+        <textarea id="note_box" type="text" style="height: 200px; position: absolute; width: 100%; margin: 5px;"></textarea>
+        <a class="save" href="http://localhost:5000/" style="width: 12.5%; font-size: 15px;">Save</a><a class="cancel" href="http://localhost:5000/" style="width: 12.5%; font-size: 15px;">Cancel</a>
+    </div>
+
+    <script>
+        var all_tags = {{all_tags | tojson}};
+        var hover_rect;
+        $(document).ready(function() {
+            $('.suggested_tag').hover(function (e) {
+                var index = e.currentTarget.id;
+                var offset = $("#street_image").offset();
+                var scale_y = $("#street_image")[0].height / $("#street_image")[0].naturalHeight;
+                var scale_x = $("#street_image")[0].width / $("#street_image")[0].naturalWidth;
+                hover_rect = DrawRectangle(all_tags[index].roi.x * scale_x - offset.left,
+                                     all_tags[index].roi.y * scale_y - offset.top + 50,
+                all_tags[index].roi.w * scale_x, all_tags[index].roi.h * scale_y);
+                hover_rect.attr({opacity: 1});
+            }, function (e) {
+                hover_rect.remove();
+            });
+        });
+        jQuery.browser = {};
+        (function() {
+            jQuery.browser.msie = false;
+            jQuery.browser.version = 0;
+            if (navigator.userAgent.match(/MSIE ([0-9]+)\./)) {
+                jQuery.browser.msie = true;
+                jQuery.browser.version = RegExp.$1;
+            }
+        })();
+        var sketchpad = Raphael.sketchpad("drawing_pad", {
+            width: "100%",
+            height: "100%",
+            editing: false
+        });
+        // When the sketchpad changes, update the input field.
+        sketchpad.change(function() {
+            $("#data").val(sketchpad.json());
+        });
+
+        sketchpad.pen().color("#f58b26");
+        sketchpad.pen().width(5);
+
+        var paper = Raphael("tagging_area");
+        paper.setSize('100%', '100%');
+
+        // start, move, and up are the drag functions
+        start = function() {
+            // storing original coordinates
+            this.ox = this.attr("x");
+            this.oy = this.attr("y");
+            this.attr({
+                opacity: 1
+            });
+            if (this.attr("y") < 60 && this.attr("x") < 60) this.attr({
+                fill: "#000"
+            });
+        };
+
+        move = function(dx, dy) {
+
+            // move will be called with dx and dy
+            if (this.attr("y") > 200 || this.attr("x") > 300) this.attr({
+                x: this.ox + dx,
+                y: this.oy + dy
+            });
+            else {
+                nowX = Math.min(300, this.ox + dx);
+                nowY = Math.min(200, this.oy + dy);
+                nowX = Math.max(0, nowX);
+                nowY = Math.max(0, nowY);
+                this.attr({
+                    x: nowX,
+                    y: nowY
+                });
+                if (this.attr("fill") != "#000") this.attr({
+                    fill: "#000"
+                });
+            }
+
+        };
+
+        up = function() {
+            // restoring state
+            this.attr({
+                opacity: .5
+            });
+            if (this.attr("y") < 60 && this.attr("x") < 60) this.attr({
+                fill: "#AEAEAE"
+            });
+        };
+
+        function DrawRectangle(x, y, w, h) {
+
+            var element = paper.rect(x, y, w, h);
+            element.attr({
+                opacity: .5,
+                stroke: "#f58b26",
+                "stroke-width": '3',
+            });
+            $(element.node).attr('id', 'rct' + x + y);
+            console.log(element.attr('x'));
+
+            element.drag(move, start, up);
+            element.click(function(e) {
+
+                elemClicked = $(element.node).attr('id');
+
+            });
+
+            return element;
+
+        }
+
+        function tagging() {
+            $('#tagging_area').unbind('mousedown');
+            $('#tagging_area').unbind('mousemove');
+            $('#tagging_area').unbind('mouseup');
+            $("#tagging_area").css("z-index", "2000");
+            sketchpad.editing(false);
+
+            $("#tagging_area").mousedown(function(e) {
+                // Prevent text edit cursor while dragging in webkit browsers
+                e.originalEvent.preventDefault();
+
+                var offset = $("#tagging_area").offset();
+                mouseDownX = e.pageX - offset.left;
+                mouseDownY = e.pageY - offset.top;
+
+                rect = DrawRectangle(mouseDownX, mouseDownY, 0, 0);
+
+                $("#tagging_area").mousemove(function(e) {
+                    var offset = $("#tagging_area").offset();
+                    var upX = e.pageX - offset.left;
+                    var upY = e.pageY - offset.top;
+
+                    var width = upX - mouseDownX;
+                    var height = upY - mouseDownY;
+
+                    rect.attr({
+                        "width": width > 0 ? width : 0,
+                        "height": height > 0 ? height : 0
+                    });
+
+                });
+
+            });
+
+            $("#tagging_area").mouseup(function(e) {
+                $('#tagging_area').unbind('mousemove');
+
+                var BBox = rect.getBBox();
+
+                if (BBox.width == 0 && BBox.height == 0) rect.remove();
+
+            });
+
+        }
+
+        $("#clr").click(function(e) {
+            $('#d1').find('rect').each(function(i, obj) {
+                $(this).remove();
+            });
+        });
+
+        $("#del").click(function(e) {
+            $('#' + elemClicked).remove();
+        });
+
+
+        function drawing() {
+            if (!sketchpad.editing()) {
+                $('#tagging_area').unbind('mouseup');
+                $('#tagging_area').unbind('mousemove');
+                $('#tagging_area').unbind('mousedown');
+                $("#tagging_area").css("z-index", "0");
+                sketchpad.editing(true);
+            } else {
+                sketchpad.editing(false);
+            }
+        }
+    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/annotation_page.js') }}"></script>
+
+</body>
+
+</html>
